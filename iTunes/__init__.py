@@ -1,5 +1,3 @@
-version="0.1.11"
-
 # Plugins/itunes/__init__.py
 #
 # Copyright (C)  2009 jitterjames  <jitterjames@gmail.com>
@@ -20,17 +18,17 @@ version="0.1.11"
 # along with EventGhost; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #
-#Last change: 
+#Last change:
 
 eg.RegisterPlugin(
     name = "iTunes",
-    author = "Stottle, Jitterjames",
-    version = version,
+    author = "Stottle, Jitterjames, cfull1",
+    version = "0.1.12",
     kind = "program",
     createMacrosOnAdd = True,
     description = (
         'Adds support functions to control '
-        '<a href="http://www.apple.com/itunes/">iTunes</a>. \n\n<P>'        
+        '<a href="http://www.apple.com/itunes/">iTunes</a>. \n\n<P>'
     ),
     url = "http://www.eventghost.org/forum/viewtopic.php?f=10&t=1815&start=0",
     icon = (
@@ -169,21 +167,21 @@ class Text:
     Grp2Name = "More advanced commands."
     Grp2Descr = (
         "Here you find further actions for control of iTunes"
-        " (volume, balance, seek) etc.."	
+        " (volume, balance, seek) etc.."
     )
     Grp3Name = "Information Retrieval"
     Grp3Descr = (
         "get settings from iTunes, and information"
         " about current song etc.."
     )
-    
+
     # ITPlaylistSearchFieldAll = 0,
     # ITPlaylistSearchFieldVisible = 1,
     # ITPlaylistSearchFieldArtists = 2,
     # ITPlaylistSearchFieldAlbums = 3,
     # ITPlaylistSearchFieldComposers = 4,
     # ITPlaylistSearchFieldSongNames = 5,
-        
+
     searchTypes = (
       "All",
       "Visible",
@@ -193,73 +191,37 @@ class Text:
       "SongNames"
     )
 
-    
-#====================================================================    
-#Classes for different types of actions
-#====================================================================    
 
-class StdCall(eg.ActionClass):    
+#====================================================================
+#Classes for different types of actions
+#====================================================================
+
+class StdCall(eg.ActionClass):
     def __call__(self):
-        if self.plugin.ComActive():
-            try:
-                self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.StdCall,self.value))
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.StdCall,self.value))
+        self.plugin.CallThread(partial(self.plugin.workerThread.StdCall,self.value))
 
 class StartApp(eg.ActionClass):
     def __call__(self):
         if not self.plugin.ComActive():
             self.plugin.StartThread()
 
-class SimpleActions(eg.ActionClass):    
+class SimpleActions(eg.ActionClass):
     def __call__(self):
-        if self.plugin.ComActive():
-            try:
-                self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.SimpleActions,self.value))
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.SimpleActions,self.value))
+        self.plugin.CallThread(partial(self.plugin.workerThread.SimpleActions,self.value))
 
-            
-class ToggleAction(eg.ActionClass):    
+
+class ToggleAction(eg.ActionClass):
     def __call__(self):
-        if self.plugin.ComActive():
-            try:
-                self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.ToggleAction,self.value))
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.ToggleAction,self.value))
+        self.plugin.CallThread(partial(self.plugin.workerThread.ToggleAction,self.value))
 
 class SetVolume(eg.ActionClass):
     class text:
         label_tree="Set volume "
         label_conf="Volume Level:"
+
     def __call__(self, volume):
-        if self.plugin.ComActive():
-            try:
-                self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.SetProperty,self.value,volume))
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart
-                print "set volume restarting thread"
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.SetProperty,self.value,volume))
-                    
+        self.plugin.CallThread(partial(self.plugin.workerThread.SetProperty,self.value,volume))
+
     def GetLabel(self, volume):
         return self.text.label_tree+str(int(volume))+"%"
 
@@ -278,29 +240,19 @@ class SetVolume(eg.ActionClass):
             panel.SetResult(volumeCtrl.GetValue())
 
 
-			
-			
-			
+
+
+
 
 
 class ChangeVolume(eg.ActionClass):
     class text:
         label_tree="Change volume by: "
         label_conf="Change by +- %:"
+
     def __call__(self, volume):
-        if self.plugin.ComActive():
-            try:
-                result=self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.ModifyValue,self.value,volume))                
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart
-                print "set volume restarting thread"
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.ModifyValue,self.value,volume))
-            return result
-                    
+        return self.plugin.CallThread(partial(self.plugin.workerThread.ModifyValue,self.value,volume))
+
     def GetLabel(self, volume):
         return self.text.label_tree+str(int(volume))+"%"
 
@@ -326,18 +278,10 @@ class LoadPlaylist(eg.ActionClass):
     class text:
         label_tree="Load Playlist: "
         label_conf="Playlist Name (case sensitive)"
+
     def __call__(self, plname):
-        if self.plugin.ComActive():
-            try:
-                return self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.doLoadPlaylist,plname,self.value))
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart\
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    return self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.doLoadPlaylist,plname,self.value))
-                    
+        return self.plugin.CallThread(partial(self.plugin.workerThread.doLoadPlaylist,plname,self.value))
+
     def GetLabel(self, plname):
         return self.text.label_tree+ plname
 
@@ -346,8 +290,8 @@ class LoadPlaylist(eg.ActionClass):
             textControl = wx.TextCtrl(panel, -1, plname, style=wx.TE_NOHIDESEL)
             SizerAdd = panel.sizer.Add
             SizerAdd(wx.StaticText(panel, -1, self.text.label_conf))
-            SizerAdd(textControl, 0, wx.EXPAND)                    
-            
+            SizerAdd(textControl, 0, wx.EXPAND)
+
             while panel.Affirmed():
                 panel.SetResult(textControl.GetValue())
 
@@ -358,25 +302,17 @@ class SearchAndPlay(eg.ActionClass):
         label_searchType="Search Type: "
         label_shuffle = "Shuffle List: "
         playlist = "Playlist Name: "
+
     def __call__(self, searchType,strSearch, shuffle, playlist="eventghostTemp"):
-        if self.plugin.ComActive():
-            try:
-                self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.doSearchAndPlay,searchType,strSearch,shuffle,playlist))
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart\
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.doSearchAndPlay,searchType,strSearch,shuffle,playlist))
-                    
+        self.plugin.CallThread(partial(self.plugin.workerThread.doSearchAndPlay,searchType,strSearch,shuffle,playlist))
+
     def GetLabel(self, searchType,strSearch, shuffle, playlist="eventghostTemp"):
         return "Search ("+searchType+"): "+strSearch
 
     def Configure(self, searchType="",searchString="", shuffle=False, playlist="eventghostTemp"):
         panel = eg.ConfigPanel(self)
 
-        isearchTypes = Text.searchTypes       
+        isearchTypes = Text.searchTypes
 
         try:
             sType = isearchTypes.index(searchType)
@@ -384,12 +320,12 @@ class SearchAndPlay(eg.ActionClass):
             sType = 0
 
         searchTypeCtrl = panel.Choice(sType, isearchTypes)
-        searchTextCtrl = panel.TextCtrl(searchString)        
+        searchTextCtrl = panel.TextCtrl(searchString)
         shuffleCtrl=panel.CheckBox(shuffle)
         playlistCtrl = panel.TextCtrl(playlist)
 
         panel.AddLine(self.text.label_searchType, searchTypeCtrl)
-        panel.AddLine(self.text.label_searchString, searchTextCtrl)        
+        panel.AddLine(self.text.label_searchString, searchTextCtrl)
         panel.AddLine(self.text.label_shuffle,shuffleCtrl)
         panel.AddLine(self.text.playlist, playlistCtrl)
 
@@ -400,29 +336,21 @@ class SearchAndPlay(eg.ActionClass):
                 shuffleCtrl.GetValue(),
                 playlistCtrl.GetValue()
             )
-                
+
 class PlaySongInPlaylist(eg.ActionClass):
     class text:
         label_searchString="Song Name: "
         playlist = "Playlist Name: "
+
     def __call__(self, search, playlist):
-        if self.plugin.ComActive():
-            try:
-                return self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.PlaySongInPlaylist,search,playlist))
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    return self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.PlaySongInPlaylist,search,playlist))
-                    
+        return self.plugin.CallThread(partial(self.plugin.workerThread.PlaySongInPlaylist,search,playlist))
+
     def GetLabel(self, search, playlist):
         return "Play \""+search+"\" in \""+playlist+"\""
 
     def Configure(self, search="", playlist=""):
         panel = eg.ConfigPanel(self)
-        searchCtrl = panel.TextCtrl(search)    
+        searchCtrl = panel.TextCtrl(search)
         playlistCtrl = panel.TextCtrl(playlist)
 
         panel.AddLine(self.text.label_searchString, searchCtrl)
@@ -433,36 +361,15 @@ class PlaySongInPlaylist(eg.ActionClass):
                 searchCtrl.GetValue(),
                 playlistCtrl.GetValue()
             )
-                
-                
+
+
 class GetTrackInfo(eg.ActionClass):
     def __call__(self):
-        if self.plugin.ComActive():
-            try:
-                #print "I'm trying"				
-                return self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.GetProperty,self.value))
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.GetProperty,self.value))
-                
+        return self.plugin.CallThread(partial(self.plugin.workerThread.GetProperty,self.value))
+
 class GetPlaylistInfo(eg.ActionClass):
     def __call__(self):
-        if self.plugin.ComActive():
-            try:
-                #print "I'm trying"				
-                return self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.GetPlaylistInfo,self.value))
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.  
-                #The COM instance is from the old thread, so restart
-                self.plugin.workerThread.Stop(1)
-                self.plugin.workerThread = None
-                if self.plugin.ComActive():
-                    self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.GetPlaylistInfo,self.value))
-
+        return self.plugin.CallThread(partial(self.plugin.workerThread.GetPlaylistInfo,self.value))
 
 class GetUniversal(eg.ActionClass):
     name = "Get Universal"
@@ -492,19 +399,11 @@ class GetUniversal(eg.ActionClass):
             ("Comment","Comment"),
             ("Compilation","Compilation"),
             ("Composer","Composer"),
-            ("DateAdded","DateAdded"),			
+            ("DateAdded","DateAdded"),
         )
-    def __call__(self, i):
-        try:
-            return self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.GetProperty,self.propertiesList[i][0]))
-        except:
-            #This should mean that the COM server was active, then shutdown and restarted.  
-            #The COM instance is from the old thread, so restart
-            self.plugin.workerThread.Stop(1)
-            self.plugin.workerThread = None
-            if self.plugin.ComActive():
-                return self.plugin.workerThread.CallWait(partial(self.plugin.workerThread.GetProperty,self.propertiesList[i][0]))
 
+    def __call__(self, i):
+        return self.plugin.CallThread(partial(self.plugin.workerThread.GetProperty,self.propertiesList[i][0]))
 
     def GetLabel(self, i):
         return self.text.get+" "+eval("self.text.Properties."+self.propertiesList[i][1])
@@ -527,9 +426,9 @@ class GetUniversal(eg.ActionClass):
 
 
 
-#====================================================================    
+#====================================================================
 #This class is based to the COM object, and responds to events that originate from the COM Server
-#====================================================================            
+#====================================================================
 
 class iTunesEvents():
     def OnPlayerPlayEvent(self, iTrack):
@@ -546,15 +445,15 @@ class iTunesEvents():
         #User is trying to close iTunes, close for them to prevent prompt
         eg.PrintNotice("Closing iTunes")
         self.plugin.workerThread.StdCall('Quit')
-#====================================================================    
+#====================================================================
 #This class is the thread that hold the COM instance
-#====================================================================            
-        
+#====================================================================
+
 class iTunesThreadWorker(eg.ThreadWorker):
     comInstance = None
     plugin = None
     eventHandler = None
-    
+
     def Setup(self, plugin, eventHandler):
         self.plugin = plugin
         self.eventHandler = eventHandler
@@ -564,11 +463,11 @@ class iTunesThreadWorker(eg.ThreadWorker):
             self.eventHandler.comInstance = self.comInstance
         except:
             pass
-        
+
     def Finish(self):
         if self.comInstance:
             del self.comInstance
-            
+
     def StdCall(self,value):
         iTunes = self.comInstance
         try:
@@ -614,7 +513,7 @@ class iTunesThreadWorker(eg.ThreadWorker):
                         return list
         except:
             eg.PrintError("Error Loading Playlist")
-    
+
     def PlaySongInPlaylist(self, song, PlaylistName):
         iTunes = self.comInstance
         try:
@@ -630,22 +529,22 @@ class iTunesThreadWorker(eg.ThreadWorker):
 
     def doSearchAndPlay(self,searchType,strSearch,Shuffle, PlaylistName):
         iTunes = self.comInstance
-        
+
         # get the searchtype and convert to integer
         isearchTypes = Text.searchTypes
         try:
             sType = isearchTypes.index(searchType)
         except ValueError:
-            sType = 0        
+            sType = 0
         #print "search type: ",sType
         #print "searching for: ",strSearch
         #print "shuffle: ",Shuffle
-        
+
         #find delete and recreate temp playlist
         try:
             for pl in iTunes.LibrarySource.Playlists:
                 if pl.Name == PlaylistName:
-                    pl.Delete() 
+                    pl.Delete()
         except:
             eg.PrintError("Error Clearing Playlist")
         #creating temp playlist
@@ -656,22 +555,23 @@ class iTunesThreadWorker(eg.ThreadWorker):
         if strSearch != "":
             results = iTunes.LibraryPlaylist.Search(strSearch, sType)
             if results == None:
-                eg.PrintNotice("Nothing Found")    
-            else:            
+                eg.PrintNotice("Nothing Found")
+            else:
                 for track in results:
                     thePlaylist.AddTrack(track)
                 thePlaylist.Shuffle=Shuffle
                 thePlaylist.PlayFirstTrack()
         else:
             eg.PrintNotice("Nothing Searched")
+
     def GetProperty(self,name):
-        iTunes = self.comInstance        
+        iTunes = self.comInstance
         try:
             return getattr(iTunes.CurrentTrack, name)
         except:
             # eg.PrintError("err: invalid iTunes property (%s)"%name)
             eg.PrintNotice("Nothing Playing")
-         
+
     def GetPlaylistInfo(self,name):
         iTunes = self.comInstance
         try:
@@ -683,21 +583,21 @@ class iTunesThreadWorker(eg.ThreadWorker):
                 return iTunes.CurrentPlaylist.SongRepeat
             elif name=="Playlists":
                 list = []
-                for playlist in iTunes.LibrarySource.Playlists:  
+                for playlist in iTunes.LibrarySource.Playlists:
                     list.append(playlist.Name)
                 return list
         except:
             return None
-    
+
     def SimpleActions(self,name):
         iTunes = self.comInstance
-        
+
         try:
-            if name=="ToggleShuffle":          
+            if name=="ToggleShuffle":
               iTunes.CurrentPlaylist.Shuffle = not iTunes.CurrentPlaylist.Shuffle
-            elif name=="ShuffleOn":          
+            elif name=="ShuffleOn":
               iTunes.CurrentPlaylist.Shuffle = True
-            elif name=="ShuffleOff":          
+            elif name=="ShuffleOff":
               iTunes.CurrentPlaylist.Shuffle = False
             elif name=="ToggleRepeat":
               if iTunes.CurrentPlaylist.SongRepeat == 0:
@@ -706,15 +606,15 @@ class iTunesThreadWorker(eg.ThreadWorker):
                 iTunes.CurrentPlaylist.SongRepeat = 1
               elif iTunes.CurrentPlaylist.SongRepeat == 1:
                 iTunes.CurrentPlaylist.SongRepeat = 0
-            elif name=="RepeatOff":          
+            elif name=="RepeatOff":
               iTunes.CurrentPlaylist.SongRepeat = 0
-            elif name=="RepeatOne":          
+            elif name=="RepeatOne":
               iTunes.CurrentPlaylist.SongRepeat = 1
-            elif name=="RepeatAll":          
+            elif name=="RepeatAll":
               iTunes.CurrentPlaylist.SongRepeat = 2
         except:
             eg.PrintNotice("Nothing Playing")
-         
+
     def ToggleAction(self,name):
         iTunes = self.comInstance
         try:
@@ -723,10 +623,10 @@ class iTunesThreadWorker(eg.ThreadWorker):
         except:
             eg.PrintError("invalid iTunes property (%s)"%name)
 
-#====================================================================    
+#====================================================================
 #This class is the plugin class that EG loads.
-#====================================================================            
-            
+#====================================================================
+
 class iTunes(eg.PluginClass):
     workerThread = None
     def __init__(self):
@@ -738,9 +638,9 @@ class iTunes(eg.PluginClass):
         group3 = self.AddGroup(Text.Grp3Name,Text.Grp3Descr)
         group3.AddActionsFromList(ACTIONSgrp3)
 
-		
 
-    def StartThread(self):        
+
+    def StartThread(self):
         class SubiTunesEvents(iTunesEvents):
             plugin = self
         self.workerThread = iTunesThreadWorker(self, SubiTunesEvents)
@@ -748,7 +648,19 @@ class iTunes(eg.PluginClass):
             self.workerThread.Start(20)
         except:
             raise self.Exception("Error starting iTunes worker thread")
-    
+
+    def CallThread(self, *args, **kwargs):
+        if self.ComActive():
+            try:
+                return self.workerThread.CallWait(*args, **kwargs)
+            except:
+                #This should mean that the COM server was active, then shutdown and restarted.
+                #The COM instance is from the old thread, so restart
+                self.workerThread.Stop(1)
+                self.workerThread = None
+                if self.ComActive():
+                    return self.workerThread.CallWait(*args, **kwargs)
+
     def ComActive(self):
         hwnds = self.windowMatch()
         if len(hwnds) != 0:
@@ -768,10 +680,10 @@ class iTunes(eg.PluginClass):
         if self.workerThread:
             self.workerThread.Stop(1)
             self.workerThread = None
-            
-#====================================================================    
+
+#====================================================================
 #Finally, each line in ACTIONS becomes a new action of the plugin.
-#====================================================================            
+#====================================================================
 
 ACTIONSgrp1 = (
 (StartApp, 'StartApp', 'Run iTunes', 'Start iTunes if it is not already running','dummy'),
