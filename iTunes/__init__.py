@@ -457,6 +457,12 @@ class iTunesThreadWorker(eg.ThreadWorker):
     plugin = None
     eventHandler = None
 
+    # Constants for indicating the repeat state
+    class repeat:
+        off = 0
+        one = 1
+        all = 2
+
     def Setup(self, plugin, eventHandler):
         self.plugin = plugin
         self.eventHandler = eventHandler
@@ -603,18 +609,18 @@ class iTunesThreadWorker(eg.ThreadWorker):
             elif name=="ShuffleOff":
               iTunes.CurrentPlaylist.Shuffle = False
             elif name=="ToggleRepeat":
-              if iTunes.CurrentPlaylist.SongRepeat == 0:
-                iTunes.CurrentPlaylist.SongRepeat = 2
-              elif iTunes.CurrentPlaylist.SongRepeat == 2:
-                iTunes.CurrentPlaylist.SongRepeat = 1
-              elif iTunes.CurrentPlaylist.SongRepeat == 1:
-                iTunes.CurrentPlaylist.SongRepeat = 0
+              if iTunes.CurrentPlaylist.SongRepeat == self.repeat.off:
+                iTunes.CurrentPlaylist.SongRepeat = self.repeat.all
+              elif iTunes.CurrentPlaylist.SongRepeat == self.repeat.all:
+                iTunes.CurrentPlaylist.SongRepeat = self.repeat.one
+              elif iTunes.CurrentPlaylist.SongRepeat == self.repeat.one:
+                iTunes.CurrentPlaylist.SongRepeat = self.repeat.off
             elif name=="RepeatOff":
-              iTunes.CurrentPlaylist.SongRepeat = 0
+              iTunes.CurrentPlaylist.SongRepeat = self.repeat.off
             elif name=="RepeatOne":
-              iTunes.CurrentPlaylist.SongRepeat = 1
+              iTunes.CurrentPlaylist.SongRepeat = self.repeat.one
             elif name=="RepeatAll":
-              iTunes.CurrentPlaylist.SongRepeat = 2
+              iTunes.CurrentPlaylist.SongRepeat = self.repeat.all
         except:
             eg.PrintNotice("Nothing Playing")
 
@@ -631,6 +637,7 @@ class iTunesThreadWorker(eg.ThreadWorker):
 #====================================================================
 
 class iTunes(eg.PluginClass):
+
     workerThread = None
     def __init__(self):
         self.windowMatch = eg.WindowMatcher(u"iTunes.exe",None, None, None, None, 1, False, 0.0, 0)
