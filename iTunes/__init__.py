@@ -22,7 +22,7 @@
 
 eg.RegisterPlugin(
     name = "iTunes",
-    author = "Stottle, Jitterjames, cfull1",
+    author = "Stottle, Jitterjames, cfull1, Boolean263",
     version = "0.1.12",
     kind = "program",
     createMacrosOnAdd = True,
@@ -445,6 +445,9 @@ class iTunesEvents():
         #User is trying to close iTunes, close for them to prevent prompt
         eg.PrintNotice("Closing iTunes")
         self.plugin.workerThread.StdCall('Quit')
+
+
+
 #====================================================================
 #This class is the thread that hold the COM instance
 #====================================================================
@@ -690,6 +693,7 @@ ACTIONSgrp1 = (
 (StdCall, 'Play', 'Play', 'Play', 'Play'),
 (StdCall, 'Stop', 'Stop', 'Stop', 'Stop'),
 (StdCall, 'Pause', 'Pause', 'Pause', 'Pause'),
+(StdCall, 'PlayPause', 'Play/Pause', 'Toggle Play/Pause', 'PlayPause'),
 (StdCall, 'Skip', 'Next track', 'Move to next track', 'NextTrack'),
 (StdCall, 'Replay', 'Previous track', 'Move to previous track', 'PreviousTrack'),
 (StdCall, 'Exit', 'Exit', 'Quit iTunes', 'Quit'),
@@ -729,5 +733,3 @@ ACTIONSgrp3 = (
 (LoadPlaylist, 'GetPlaylistTracks', 'Get Playlist Tracks By Name', 'Loads a playlist by name and return its tracks', 'Tracks'),
 )
 
-
-#this.itunes.CurrentPlaylist.Shuffle = true;
