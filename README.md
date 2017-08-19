@@ -64,6 +64,7 @@ Stottle, Jitterjames, cfull1, and now, Boolean263
 
 ### 0.1.12 - 2017-08-18
 
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=60#p47694)
 * Boolean263 dusts off the code
 * New action: Play/Pause toggle
 * Improve TrackChanged event: add kind, composer, comment, and genre
