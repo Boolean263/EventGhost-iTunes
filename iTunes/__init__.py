@@ -26,11 +26,9 @@ eg.RegisterPlugin(
     version = "0.1.12",
     kind = "program",
     createMacrosOnAdd = True,
-    description = (
-        'Adds support functions to control '
-        '<a href="http://www.apple.com/itunes/">iTunes</a>. \n\n<P>'
-    ),
+    description = 'Adds support functions to control <a href="http://www.apple.com/itunes/">iTunes</a>.',
     url = "http://www.eventghost.org/forum/viewtopic.php?f=10&t=1815&start=0",
+    guid = "{20ef2042-945a-4165-b8c5-3f98e70c0ae7}",
     icon = (
     "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEA"
     "mpwYAAAKT2lDQ1BQaG90b3Nob3AgSUNDIHByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iA"
@@ -431,16 +429,34 @@ class GetUniversal(eg.ActionClass):
 #====================================================================
 
 class iTunesEvents():
+    lastStreamChange = 0
     def OnPlayerPlayEvent(self, iTrack):
-        track = self.comInstance.CurrentTrack
+        "Triggered when the user plays a track, or switches tracks."
+        track = Dispatch(iTrack)
         Payload = {}
         Payload["name"] = track.Name
         Payload["artist"] = track.Artist
         Payload["album"] = track.Album
         Payload["duration"] = track.Duration
+        Payload["kind"] = track.KindAsString
+        Payload["composer"] = track.Composer
+        Payload["comment"] = track.Comment
+        Payload["genre"] = track.Genre
         self.plugin.TriggerEvent("TrackChanged",Payload)
+    def OnPlayerPlayingTrackChangedEvent(self, iTrack):
+        "Triggered when a stream changes its song title."
+        # Work around double-triggered events
+        now = time.time()
+        if now - self.lastStreamChange > 0.2:
+            Payload = {}
+            Payload["name"] = self.comInstance.CurrentStreamTitle
+            Payload["URL"] = self.comInstance.CurrentStreamURL
+            self.plugin.TriggerEvent("StreamTrackChanged",Payload)
+        self.lastStreamChange = now
     def OnPlayerStopEvent(self, iTrack):
-        pass
+        "Triggered when the user stops play, or switches tracks."
+        if self.comInstance.PlayerState == self.comConst.ITPlayerStateStopped:
+            self.plugin.TriggerEvent("Stopped")
     def OnAboutToPromptUserToQuitEvent(self):
         #User is trying to close iTunes, close for them to prevent prompt
         eg.PrintNotice("Closing iTunes")
@@ -454,28 +470,27 @@ class iTunesEvents():
 
 class iTunesThreadWorker(eg.ThreadWorker):
     comInstance = None
+    comConst = None
     plugin = None
     eventHandler = None
-
-    # Constants for indicating the repeat state
-    class repeat:
-        off = 0
-        one = 1
-        all = 2
 
     def Setup(self, plugin, eventHandler):
         self.plugin = plugin
         self.eventHandler = eventHandler
         try:
             self.comInstance = win32com.client.gencache.EnsureDispatch("iTunes.Application")
+            self.comConst = win32com.client.constants
             win32com.client.WithEvents(self.comInstance,self.eventHandler)
             self.eventHandler.comInstance = self.comInstance
+            self.eventHandler.comConst = self.comConst
         except:
             pass
 
     def Finish(self):
         if self.comInstance:
             del self.comInstance
+        if self.comConst:
+            del self.comConst
 
     def StdCall(self,value):
         iTunes = self.comInstance
@@ -600,6 +615,7 @@ class iTunesThreadWorker(eg.ThreadWorker):
 
     def SimpleActions(self,name):
         iTunes = self.comInstance
+        const = self.comConst
 
         try:
             if name=="ToggleShuffle":
@@ -609,18 +625,18 @@ class iTunesThreadWorker(eg.ThreadWorker):
             elif name=="ShuffleOff":
               iTunes.CurrentPlaylist.Shuffle = False
             elif name=="ToggleRepeat":
-              if iTunes.CurrentPlaylist.SongRepeat == self.repeat.off:
-                iTunes.CurrentPlaylist.SongRepeat = self.repeat.all
-              elif iTunes.CurrentPlaylist.SongRepeat == self.repeat.all:
-                iTunes.CurrentPlaylist.SongRepeat = self.repeat.one
-              elif iTunes.CurrentPlaylist.SongRepeat == self.repeat.one:
-                iTunes.CurrentPlaylist.SongRepeat = self.repeat.off
+              if iTunes.CurrentPlaylist.SongRepeat == const.ITPlaylistRepeatModeOff:
+                iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeAll
+              elif iTunes.CurrentPlaylist.SongRepeat == const.ITPlaylistRepeatModeAll:
+                iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeOne
+              elif iTunes.CurrentPlaylist.SongRepeat == const.ITPlaylistRepeatModeOne:
+                  iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeOff
             elif name=="RepeatOff":
-              iTunes.CurrentPlaylist.SongRepeat = self.repeat.off
+                iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeOff
             elif name=="RepeatOne":
-              iTunes.CurrentPlaylist.SongRepeat = self.repeat.one
+              iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeOne
             elif name=="RepeatAll":
-              iTunes.CurrentPlaylist.SongRepeat = self.repeat.all
+              iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeAll
         except:
             eg.PrintNotice("Nothing Playing")
 
