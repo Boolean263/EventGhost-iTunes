@@ -37,13 +37,16 @@ playlist name, playlist shuffle status, playlist repeat status, list of
 playlists, playlist tracks by name, and "universal" (song name, album name,
 artist, bitrate, BPM, comment, compilation, composer, date added).
 
+Events triggered: track changed, web radio stream track changed,
+playback stopped.
+
 ## Downloads and Support
 
 This plugin first appeared in
 [this thread on the EventGhost forums](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=0),
 and that thread now serves as its support and distribution thread.
 All releases so far have appeared as attachments to comments on that
-thread. I'll do the same with my contributions once I feel they're worthy.
+thread. I'll do the same with my contributions.
 
 I've copied the
 [0.1.11 release](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=45#p19716)
@@ -55,5 +58,60 @@ that said, the thread has seen little to no activity in the last 2 years.
 
 ## Authors
 
-Stottle, Jitterjames, cfull1, and hopefully some day, Boolean263
+Stottle, Jitterjames, cfull1, and now, Boolean263
 
+## Changelog
+
+### 0.1.12 - 2017-08-18
+
+* Boolean263 dusts off the code
+* New action: Play/Pause toggle
+* Improve TrackChanged event: add kind, composer, comment, and genre
+  to the payload
+* Add StreamTrackChanged event: gives title and URL when a radio stream
+  changes its title
+* Add Stopped event when iTunes is stopped
+* Some backend refactoring
+
+Details below this line are a bit shaky.
+
+### 0.1.11 - 2011-10-15
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=45#p19716)
+* Finally update the version number
+* Clean up the code a bit
+* Handle some error conditions
+* Add "Play song in playlist" action
+
+### 0.1.10 - 2011-10-10
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=45#p19626)
+* cfull1 joins the development
+* Add repeat control
+* Add info retrieval actions: shuffle, repeat, playlists, current playlist,
+  playlist's tracks
+
+### 0.1.10 - 2011-06-09
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=30#p18478)
+* Add "Search and Load" command: create a playlist and populate it with
+  songs that match search terms
+* Add shuffle control
+
+### 0.1.10 - 2009-09-10
+
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=15#p10597)
+* No details given
+
+### 0.1.10 - 2009-08-27
+
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815#p10224)
+* Added ability to load playlist by name
+
+### 0.1.10 - 2009-08-23
+
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815#p10125)
+* stottle joins the development
+* Added multithreading
+
+### 0.0.1 - 2009-08-19
+
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815#p10027)
+* Initial release by jitterjames
