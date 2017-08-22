@@ -64,7 +64,7 @@ Stottle, Jitterjames, cfull1, and now, Boolean263
 
 ### 0.1.13 - 2017-08-22
 
-* [Release link](http://TODO)
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=60#p47762)
 * Refactor CallThread() so it works when iTunes isn't running
 * Add a notice when the requested playlist name can't be found
 
