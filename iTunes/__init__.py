@@ -23,7 +23,7 @@
 eg.RegisterPlugin(
     name = "iTunes",
     author = "Stottle, Jitterjames, cfull1, Boolean263",
-    version = "0.1.12",
+    version = "0.1.13",
     kind = "program",
     createMacrosOnAdd = True,
     description = 'Adds support functions to control <a href="http://www.apple.com/itunes/">iTunes</a>.',
@@ -196,7 +196,7 @@ class Text:
 
 class StdCall(eg.ActionClass):
     def __call__(self):
-        self.plugin.CallThread(partial(self.plugin.workerThread.StdCall,self.value))
+        self.plugin.CallThread("StdCall",self.value)
 
 class StartApp(eg.ActionClass):
     def __call__(self):
@@ -205,12 +205,12 @@ class StartApp(eg.ActionClass):
 
 class SimpleActions(eg.ActionClass):
     def __call__(self):
-        self.plugin.CallThread(partial(self.plugin.workerThread.SimpleActions,self.value))
+        self.plugin.CallThread("SimpleActions",self.value)
 
 
 class ToggleAction(eg.ActionClass):
     def __call__(self):
-        self.plugin.CallThread(partial(self.plugin.workerThread.ToggleAction,self.value))
+        self.plugin.CallThread("ToggleAction",self.value)
 
 class SetVolume(eg.ActionClass):
     class text:
@@ -218,7 +218,7 @@ class SetVolume(eg.ActionClass):
         label_conf="Volume Level:"
 
     def __call__(self, volume):
-        self.plugin.CallThread(partial(self.plugin.workerThread.SetProperty,self.value,volume))
+        self.plugin.CallThread("SetProperty",self.value,volume)
 
     def GetLabel(self, volume):
         return self.text.label_tree+str(int(volume))+"%"
@@ -237,19 +237,13 @@ class SetVolume(eg.ActionClass):
         while panel.Affirmed():
             panel.SetResult(volumeCtrl.GetValue())
 
-
-
-
-
-
-
 class ChangeVolume(eg.ActionClass):
     class text:
         label_tree="Change volume by: "
         label_conf="Change by +- %:"
 
     def __call__(self, volume):
-        return self.plugin.CallThread(partial(self.plugin.workerThread.ModifyValue,self.value,volume))
+        return self.plugin.CallThread("ModifyValue",self.value,volume)
 
     def GetLabel(self, volume):
         return self.text.label_tree+str(int(volume))+"%"
@@ -269,16 +263,13 @@ class ChangeVolume(eg.ActionClass):
         while panel.Affirmed():
             panel.SetResult(volumeCtrl.GetValue())
 
-
-
-
 class LoadPlaylist(eg.ActionClass):
     class text:
         label_tree="Load Playlist: "
         label_conf="Playlist Name (case sensitive)"
 
     def __call__(self, plname):
-        return self.plugin.CallThread(partial(self.plugin.workerThread.doLoadPlaylist,plname,self.value))
+        return self.plugin.CallThread("doLoadPlaylist",plname,self.value)
 
     def GetLabel(self, plname):
         return self.text.label_tree+ plname
@@ -302,7 +293,7 @@ class SearchAndPlay(eg.ActionClass):
         playlist = "Playlist Name: "
 
     def __call__(self, searchType,strSearch, shuffle, playlist="eventghostTemp"):
-        self.plugin.CallThread(partial(self.plugin.workerThread.doSearchAndPlay,searchType,strSearch,shuffle,playlist))
+        self.plugin.CallThread("doSearchAndPlay",searchType,strSearch,shuffle,playlist)
 
     def GetLabel(self, searchType,strSearch, shuffle, playlist="eventghostTemp"):
         return "Search ("+searchType+"): "+strSearch
@@ -341,7 +332,7 @@ class PlaySongInPlaylist(eg.ActionClass):
         playlist = "Playlist Name: "
 
     def __call__(self, search, playlist):
-        return self.plugin.CallThread(partial(self.plugin.workerThread.PlaySongInPlaylist,search,playlist))
+        return self.plugin.CallThread("PlaySongInPlaylist",search,playlist)
 
     def GetLabel(self, search, playlist):
         return "Play \""+search+"\" in \""+playlist+"\""
@@ -360,14 +351,13 @@ class PlaySongInPlaylist(eg.ActionClass):
                 playlistCtrl.GetValue()
             )
 
-
 class GetTrackInfo(eg.ActionClass):
     def __call__(self):
-        return self.plugin.CallThread(partial(self.plugin.workerThread.GetProperty,self.value))
+        return self.plugin.CallThread("GetProperty",self.value)
 
 class GetPlaylistInfo(eg.ActionClass):
     def __call__(self):
-        return self.plugin.CallThread(partial(self.plugin.workerThread.GetPlaylistInfo,self.value))
+        return self.plugin.CallThread("GetPlaylistInfo",self.value)
 
 class GetUniversal(eg.ActionClass):
     name = "Get Universal"
@@ -401,7 +391,7 @@ class GetUniversal(eg.ActionClass):
         )
 
     def __call__(self, i):
-        return self.plugin.CallThread(partial(self.plugin.workerThread.GetProperty,self.propertiesList[i][0]))
+        return self.plugin.CallThread("GetProperty",self.propertiesList[i][0])
 
     def GetLabel(self, i):
         return self.text.get+" "+eval("self.text.Properties."+self.propertiesList[i][1])
@@ -425,7 +415,8 @@ class GetUniversal(eg.ActionClass):
 
 
 #====================================================================
-#This class is based to the COM object, and responds to events that originate from the COM Server
+# This class is based to the COM object, and responds to events that
+# originate from the COM Server
 #====================================================================
 
 class iTunesEvents():
@@ -523,7 +514,7 @@ class iTunesThreadWorker(eg.ThreadWorker):
             for playlist in iTunes.LibrarySource.Playlists:
                 if playlist.Name == PlaylistName:
                     if name == "Play":
-                        playlist.PlayFirstTrack()
+                        return playlist.PlayFirstTrack()
                     elif name == "Tracks":
                         list = []
                         for track in playlist.Tracks:
@@ -535,6 +526,8 @@ class iTunesThreadWorker(eg.ThreadWorker):
                             Payload["Enabled"] = track.Enabled
                             list.append(Payload)
                         return list
+            # If we get here, we couldn't find a playlist by that name
+            eg.PrintNotice("No playlist found named \"{}\"".format(PlaylistName))
         except:
             eg.PrintError("Error Loading Playlist")
 
@@ -547,6 +540,8 @@ class iTunesThreadWorker(eg.ThreadWorker):
                         if track.Name == song:
                             track.Play()
                             return True
+            # If we get here, we couldn't find a playlist by that name
+            eg.PrintNotice("No playlist found named \"{}\"".format(PlaylistName))
             return False
         except:
             eg.PrintError("Error Loading Playlist")
@@ -664,8 +659,6 @@ class iTunes(eg.PluginClass):
         group3 = self.AddGroup(Text.Grp3Name,Text.Grp3Descr)
         group3.AddActionsFromList(ACTIONSgrp3)
 
-
-
     def StartThread(self):
         class SubiTunesEvents(iTunesEvents):
             plugin = self
@@ -675,17 +668,24 @@ class iTunes(eg.PluginClass):
         except:
             raise self.Exception("Error starting iTunes worker thread")
 
-    def CallThread(self, *args, **kwargs):
-        if self.ComActive():
-            try:
-                return self.workerThread.CallWait(*args, **kwargs)
-            except:
-                #This should mean that the COM server was active, then shutdown and restarted.
-                #The COM instance is from the old thread, so restart
-                self.workerThread.Stop(1)
-                self.workerThread = None
-                if self.ComActive():
-                    return self.workerThread.CallWait(*args, **kwargs)
+    def CallThread(self, funcName, *args, **kwargs):
+        if not self.ComActive():
+            return None
+
+        try:
+            func = partial(getattr(self.workerThread, funcName), *args, **kwargs)
+        except ImportError, TypeError:
+            raise NameError("workerThread has no method '{}'".format(funcName))
+
+        try:
+            return self.workerThread.CallWait(func)
+        except:
+            #This should mean that the COM server was active, then shutdown
+            # and restarted. The COM instance is from the old thread, so restart
+            self.workerThread.Stop(1)
+            self.workerThread = None
+            if self.ComActive():
+                return self.workerThread.CallWait(func)
 
     def ComActive(self):
         hwnds = self.windowMatch()
