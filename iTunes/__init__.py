@@ -22,13 +22,13 @@
 
 eg.RegisterPlugin(
     name = "iTunes",
-    author = "Stottle, Jitterjames, cfull1, Boolean263",
-    version = "0.1.13",
+    author = "Stottle, Jitterjames, cfull1, yokel22, Boolean263",
+    version = "0.1.15",
     kind = "program",
     createMacrosOnAdd = True,
     description = 'Adds support functions to control <a href="http://www.apple.com/itunes/">iTunes</a>.',
     url = "http://www.eventghost.org/forum/viewtopic.php?f=10&t=1815&start=0",
-    guid = "{20ef2042-945a-4165-b8c5-3f98e70c0ae7}",
+    guid = "{20EF2042-945A-4165-B8C5-3F98E70C0AE7}",
     icon = (
     "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEA"
     "mpwYAAAKT2lDQ1BQaG90b3Nob3AgSUNDIHByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iA"
@@ -237,6 +237,51 @@ class SetVolume(eg.ActionClass):
         while panel.Affirmed():
             panel.SetResult(volumeCtrl.GetValue())
 
+class SetPosition(eg.ActionClass):
+    class text:
+        label_tree="Set Position to "
+        label_conf="Seconds:"
+    def __call__(self, playerPos):
+        self.plugin.CallThread("SetProperty",self.value,playerPos)
+
+    def GetLabel(self, playerPos):
+        return self.text.label_tree+str(int(playerPos))+ " seconds"
+
+    def Configure(self, playerPos=60):
+        panel = eg.ConfigPanel(self)
+        playerPosCtrl = eg.SpinIntCtrl(
+            panel,
+            playerPos,
+            max=10000,
+        )
+        panel.AddLabel(self.text.label_conf)
+        panel.AddCtrl(playerPosCtrl)
+        while panel.Affirmed():
+            panel.SetResult(playerPosCtrl.GetValue())
+
+class SetRating(eg.ActionClass):
+    class text:
+        label_tree="Set Rating to "
+        label_conf="rating: 20=1star, 40=2stars, 60=3stars, 80=4stars, 100=5stars."
+    def __call__(self, rating):
+        self.plugin.CallThread("SetTrackProperty",self.value,rating)
+
+    def GetLabel(self, rating):
+        return self.text.label_tree+str(int(rating))+" rating"
+
+    def Configure(self, rating=100):
+        panel = eg.ConfigPanel(self)
+        ratingCtrl = eg.SpinIntCtrl(
+            panel,
+            rating,
+            max=100,
+        )
+        panel.AddLabel(self.text.label_conf)
+        panel.AddCtrl(ratingCtrl)
+        while panel.Affirmed():
+            panel.SetResult(ratingCtrl.GetValue())
+
+
 class ChangeVolume(eg.ActionClass):
     class text:
         label_tree="Change volume by: "
@@ -351,6 +396,14 @@ class PlaySongInPlaylist(eg.ActionClass):
                 playlistCtrl.GetValue()
             )
 
+class GetInfo(eg.ActionClass):
+    def __call__(self):
+        return self.plugin.CallThread("GetPlayerProperty",self.value)
+
+class GetURLInfo(eg.ActionClass):
+    def __call__(self):
+        return self.plugin.CallThread("GetURLProperty",self.value)
+
 class GetTrackInfo(eg.ActionClass):
     def __call__(self):
         return self.plugin.CallThread("GetProperty",self.value)
@@ -367,8 +420,26 @@ class GetUniversal(eg.ActionClass):
         get = "Get"
         class Properties:
             Name = "Song Name"
-            Album = "Album Name "
+            Album = "Album Name"
             Artist = "Artist Name"
+            Year = "Year Released"
+            Rating = "Rating"
+            Genre = "Genre"
+            Duration = "Duration"
+            Time = "Time"
+            Artwork = "Artwork"
+            Start = "Start Time"
+            Finish = "Finish Time"
+            TrackCount = "Track count"
+            TrackNumber = "Track number"
+            PlayedCount = "Track Times Played"
+            PlayedDate = "Track Last Played Date/Time"
+            DiscCount = "Number Of Discs"
+            DiscNumber = "Disc Number"
+            PlayedCount = "Times Played"
+            PlayOrderIndex = "Playlist Track Order Number"
+            KindAsString = "Track Type"
+            SampleRate = "Sample Rate"
             BitRate = "BitRate"
             BPM = "BPM"
             Comment = "Comment"
@@ -382,6 +453,24 @@ class GetUniversal(eg.ActionClass):
             ("Name","Name"),
             ("Album","Album"),
             ("Artist","Artist"),
+            ("Year","Year"),
+            ("Rating","Rating"),
+            ("Genre","Genre"),
+            ("Duration","Duration"),
+            ("Time","Time"),
+            ("Artwork","Artwork"),
+            ("Start","Start"),
+            ("Finish","Finish"),
+            ("TrackCount","TrackCount"),
+            ("TrackNumber","TrackNumber"),
+            ("PlayedCount","PlayedCount"),
+            ("PlayedDate","PlayedDate"),
+            ("DiscCount","DiscCount"),
+            ("DiscNumber","DiscNumber"),
+            ("PlayedCount","PlayedCount"),
+            ("PlayOrderIndex","PlayOrderIndex"),
+            ("KindAsString","KindAsString"),
+            ("SampleRate","SampleRate"),
             ("BitRate","BitRate"),
             ("BPM","BPM"),
             ("Comment","Comment"),
@@ -428,11 +517,15 @@ class iTunesEvents():
         Payload["name"] = track.Name
         Payload["artist"] = track.Artist
         Payload["album"] = track.Album
+        Payload["bitRate"] = track.BitRate
         Payload["duration"] = track.Duration
         Payload["kind"] = track.KindAsString
         Payload["composer"] = track.Composer
         Payload["comment"] = track.Comment
         Payload["genre"] = track.Genre
+        Payload["year"] = track.Year
+        Payload["rating"] = track.Rating
+        Payload["artwork"] = track.Artwork
         self.plugin.TriggerEvent("TrackChanged",Payload)
     def OnPlayerPlayingTrackChangedEvent(self, iTrack):
         "Triggered when a stream changes its song title."
@@ -444,6 +537,10 @@ class iTunesEvents():
             Payload["URL"] = self.comInstance.CurrentStreamURL
             self.plugin.TriggerEvent("StreamTrackChanged",Payload)
         self.lastStreamChange = now
+    def OnSoundVolumeChangedEvent(self, iTrack):
+        iTunes = self.comInstance
+        payload= iTunes.SoundVolume
+        self.plugin.TriggerEvent("VolumeChanged",payload)
     def OnPlayerStopEvent(self, iTrack):
         "Triggered when the user stops play, or switches tracks."
         if self.comInstance.PlayerState == self.comConst.ITPlayerStateStopped:
@@ -451,6 +548,7 @@ class iTunesEvents():
     def OnAboutToPromptUserToQuitEvent(self):
         #User is trying to close iTunes, close for them to prevent prompt
         eg.PrintNotice("Closing iTunes")
+        self.plugin.TriggerEvent("Closing")
         self.plugin.workerThread.StdCall('Quit')
 
 
@@ -498,6 +596,13 @@ class iTunesThreadWorker(eg.ThreadWorker):
         except:
             eg.PrintNotice("invalid iTunes property (%s)"%name)
 
+    def SetTrackProperty(self,name,newValue):
+        iTunes = self.comInstance
+        try:
+            setattr(iTunes.CurrentTrack, name,newValue)
+        except:
+            eg.PrintNotice("invalid iTunes track property (%s)"%name)
+
     def ModifyValue(self,name,newValue):
         iTunes = self.comInstance
         try:
@@ -523,13 +628,16 @@ class iTunesThreadWorker(eg.ThreadWorker):
                             Payload["Artist"] = track.Artist
                             Payload["Album"] = track.Album
                             Payload["Duration"] = track.Duration
+                            Payload["Rating"] = track.Rating
+                            Payload["Year"] = track.Year
+                            Payload["TrackNumber"] = track.PlayOrderIndex
                             Payload["Enabled"] = track.Enabled
                             list.append(Payload)
                         return list
             # If we get here, we couldn't find a playlist by that name
             eg.PrintNotice("No playlist found named \"{}\"".format(PlaylistName))
         except:
-            eg.PrintError("Error Loading Playlist")
+            eg.PrintError("Error Loading Playlist \"{}\"".format(PlaylistName))
 
     def PlaySongInPlaylist(self, song, PlaylistName):
         iTunes = self.comInstance
@@ -591,6 +699,22 @@ class iTunesThreadWorker(eg.ThreadWorker):
             # eg.PrintError("err: invalid iTunes property (%s)"%name)
             eg.PrintNotice("Nothing Playing")
 
+    def GetPlayerProperty(self,name):
+        iTunes = self.comInstance
+        try:
+            return getattr(iTunes, name)
+        except:
+            # eg.PrintError("err: invalid iTunes property (%s)"%name)
+            eg.PrintNotice("Nothing Playing")
+
+    def GetURLProperty(self,name):
+        iTunes = self.comInstance
+        try:
+            return getattr(iTunes.CurrentTrack, name)
+        except:
+            eg.PrintError("err: invalid iTunes property (%s)"%name)
+            eg.PrintNotice("Nothing Playing")
+
     def GetPlaylistInfo(self,name):
         iTunes = self.comInstance
         try:
@@ -598,6 +722,8 @@ class iTunesThreadWorker(eg.ThreadWorker):
                 return iTunes.CurrentPlaylist.Name
             elif name=="Shuffle":
                 return iTunes.CurrentPlaylist.Shuffle
+            elif name=="Duration":
+                return iTunes.CurrentPlaylist.Duration
             elif name=="Repeat":
                 return iTunes.CurrentPlaylist.SongRepeat
             elif name=="Playlists":
@@ -632,6 +758,8 @@ class iTunesThreadWorker(eg.ThreadWorker):
               iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeOne
             elif name=="RepeatAll":
               iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeAll
+            elif name=="SetRating":
+              iTunes.CurrentTrack.Rating = 100
         except:
             eg.PrintNotice("Nothing Playing")
 
@@ -691,9 +819,11 @@ class iTunes(eg.PluginClass):
         hwnds = self.windowMatch()
         if len(hwnds) != 0:
             if not self.workerThread:
+                self.TriggerEvent("Running")
                 self.StartThread()
             return True
         elif self.workerThread:
+            self.TriggerEvent("NotRunning")
             self.workerThread.Stop(1)
             self.workerThread = None
         eg.PrintNotice("iTunes is not running")
@@ -736,6 +866,8 @@ ACTIONSgrp1 = (
 )
 
 ACTIONSgrp2 = (
+(SetRating, 'rating', 'Set Track Rating', 'Sets the rating for current track.', 'Rating'),
+(SetPosition, 'playerPos', 'Seek Position', 'Sets the player position in secs.', 'PlayerPosition'),
 (SetVolume, 'SetVolume', 'Set Volume Level', 'Sets the volume to a percentage (%).', 'SoundVolume'),
 (ChangeVolume, 'ChangeVolume', 'Change Volume Level', 'Modifies the volume by a percentage (%).', 'SoundVolume'),
 (LoadPlaylist, 'LoadPlaylist', 'Load Playlist By Name', 'Loads a playlist by name and plays it.', 'Play'),
@@ -744,15 +876,24 @@ ACTIONSgrp2 = (
 )
 
 ACTIONSgrp3 = (
+(GetInfo, 'GetMute', 'Get Mute', 'Returns Mute Status.', 'Mute'),
+(GetInfo, 'GetSoundVolume', 'Get Volume', 'Returns Volume.', 'SoundVolume'),
+(GetInfo, 'GetPlayerState', 'Get Play State', 'Returns Play State. Returns 0 for Paused/Stopped, 1 for Playing, 2 for FFWD, 3 for RWND', 'PlayerState'),
+(GetInfo, 'GetPlayerPosition', 'Get Position', 'Returns Position in seconds.', 'PlayerPosition'),
+(GetURLInfo, 'GetURL', 'Get track URL', 'Returns Track Streaming URL.', 'Podcast'),
 (GetTrackInfo, 'GetTitle', 'Get Title', 'Returns song title.', 'Name'),
 (GetTrackInfo, 'GetAlbum', 'Get Album', 'Returns album name.', 'Album'),
 (GetTrackInfo, 'GetArtist', 'Get Artist', 'Returns the artist name.', 'Artist'),
 (GetTrackInfo, 'GetGenre', 'Get Genre', 'Returns the genre.', 'Genre'),
+(GetTrackInfo, 'GetYear', 'Get Year', 'Returns the Year.', 'Year'),
+(GetTrackInfo, 'GetRating', 'Get Rating', 'Returns the rating.', 'Rating'),
+(GetTrackInfo, 'GetDuration', 'Get Duration', 'Returns the tracks duration in seconds.', 'Duration'),
 (GetUniversal, 'GetUniversal', 'Get Universal', 'Get one of many possible fields for current song.', 'GetUniversal'),
 (GetPlaylistInfo, 'GetPlaylistName', 'Get Playlist Name', 'Returns the name of the current playlist', 'Name'),
 (GetPlaylistInfo, 'GetPlaylistShuffle', 'Get Playlist Shuffle', 'Returns true or false for shuffle value of the current playlist', 'Shuffle'),
 (GetPlaylistInfo, 'GetPlaylistRepeat', 'Get Playlist Repeat', 'Returns 0 for Off, 1 for One Song, or 2 for All Songs', 'Repeat'),
 (GetPlaylistInfo, 'GetPlaylists', 'Get Playlists', 'Returns all playlists', 'Playlists'),
+(GetPlaylistInfo, 'GetPlaylistDuration', 'Get Playlist Total Duration', 'Returns the duration of playlist', 'Duration'),
 (LoadPlaylist, 'GetPlaylistTracks', 'Get Playlist Tracks By Name', 'Loads a playlist by name and return its tracks', 'Tracks'),
 )
 

@@ -30,15 +30,17 @@ turn repeat on/off/repeat all.
 
 Advanced control features supported: set/change volume, load playlist
 by name, search for songs and put them in a playlist, play a song in a
-playlist.
+playlist, set rating, set playback position.
 
-Information retrieval fields supported: get title, album, artist, genre,
-playlist name, playlist shuffle status, playlist repeat status, list of
-playlists, playlist tracks by name, and "universal" (song name, album name,
-artist, bitrate, BPM, comment, compilation, composer, date added).
+Information retrieval fields supported: get title, album, artist, genre, year,
+rating, duration, mute status, volume, playback state, playback position, URL,
+playlist name, playlist shuffle status, playlist repeat status, playlist
+duration, list of playlists, playlist tracks by name, and "universal" (song
+name, album name, artist, bitrate, BPM, comment, compilation, composer, date
+added, ...).
 
 Events triggered: track changed, web radio stream track changed,
-playback stopped.
+playback stopped, volume changed, iTunes closing, iTunes starting.
 
 ## Downloads and Support
 
@@ -58,9 +60,23 @@ that said, the thread has seen little to no activity in the last 2 years.
 
 ## Authors
 
-Stottle, Jitterjames, cfull1, and now, Boolean263
+Stottle, Jitterjames, cfull1, yokel22, and Boolean263
 
 ## Changelog
+
+### 0.1.15 - 2017-08-28
+* [Release link](http://TODO)
+* Merge yokel22's wonderful changes (below) into the version Boolean263 released
+
+### 0.1.14 - 2016-12-04
+
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=13&t=9487#p43921)
+* Independent modifications by yokel22 based on a 0.1.11 release
+* Add actions: set rating, set seek position, get mute status, get volume,
+  get playback state, get player position, get URL, get year, get rating, get
+  duration, get playlist duration
+* Add events: volume changed, iTunes closing, iTunes starting
+* Add many fields to the GetTrackInfo action
 
 ### 0.1.13 - 2017-08-22
 
