@@ -65,7 +65,7 @@ Stottle, Jitterjames, cfull1, yokel22, and Boolean263
 ## Changelog
 
 ### 0.1.15 - 2017-08-28
-* [Release link](http://TODO)
+* [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&p=47869#p47869)
 * Merge yokel22's wonderful changes (below) into the version Boolean263 released
 
 ### 0.1.14 - 2016-12-04
