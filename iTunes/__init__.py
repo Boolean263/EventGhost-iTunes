@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Plugins/itunes/__init__.py
 #
 # Copyright (C)  2009 jitterjames  <jitterjames@gmail.com>
@@ -156,6 +157,7 @@ import wx.lib.masked as masked
 from os.path import isfile
 import win32com.client
 from functools import partial
+import wx
 
 #====================================================================
 class Text:
@@ -214,14 +216,14 @@ class ToggleAction(eg.ActionClass):
 
 class SetVolume(eg.ActionClass):
     class text:
-        label_tree="Set volume "
-        label_conf="Volume Level:"
+        label_tree="Set volume to {}%"
+        label_conf="Volume Level: {}%"
 
     def __call__(self, volume):
         self.plugin.CallThread("SetProperty",self.value,volume)
 
     def GetLabel(self, volume):
-        return self.text.label_tree+str(int(volume))+"%"
+        return self.text.label_tree.format(volume)
 
     def Configure(self, volume=100.0):
         panel = eg.ConfigPanel(self)
@@ -232,20 +234,20 @@ class SetVolume(eg.ActionClass):
             max=100.0,
             fractionWidth=1
         )
-        panel.AddLabel(self.text.label_conf)
-        panel.AddCtrl(volumeCtrl)
+        labels = self.text.label_conf.split("{}",1)
+        panel.AddLine(labels[0], volumeCtrl, labels[1])
         while panel.Affirmed():
             panel.SetResult(volumeCtrl.GetValue())
 
 class SetPosition(eg.ActionClass):
     class text:
-        label_tree="Set Position to "
+        label_tree="Set Position to {} seconds"
         label_conf="Seconds:"
     def __call__(self, playerPos):
         self.plugin.CallThread("SetProperty",self.value,playerPos)
 
     def GetLabel(self, playerPos):
-        return self.text.label_tree+str(int(playerPos))+ " seconds"
+        return self.text.label_tree.format(playerPos)
 
     def Configure(self, playerPos=60):
         panel = eg.ConfigPanel(self)
@@ -254,44 +256,60 @@ class SetPosition(eg.ActionClass):
             playerPos,
             max=10000,
         )
-        panel.AddLabel(self.text.label_conf)
-        panel.AddCtrl(playerPosCtrl)
+        panel.AddLine(self.text.label_conf, playerPosCtrl)
         while panel.Affirmed():
             panel.SetResult(playerPosCtrl.GetValue())
 
 class SetRating(eg.ActionClass):
     class text:
-        label_tree="Set Rating to "
-        label_conf="rating: 20=1star, 40=2stars, 60=3stars, 80=4stars, 100=5stars."
+        label_info="iTunes internally uses a number between 0 and 100 to represent a song's rating."
+        label_prompt="Set Rating to"
+        label_tree="Set Rating to {}/100"
     def __call__(self, rating):
-        self.plugin.CallThread("SetTrackProperty",self.value,rating)
+        if rating < 0 or rating > 100:
+            raise ValueError("Rating must be between 0 and 100")
+        self.plugin.CallThread("SetTrackProperty", self.value, rating)
 
     def GetLabel(self, rating):
-        return self.text.label_tree+str(int(rating))+" rating"
+        return self.text.label_tree.format(rating)
 
     def Configure(self, rating=100):
+        sWhite = u"\u2606" # WHITE STAR
+        sBlack = u"\u2605" # BLACK STAR
         panel = eg.ConfigPanel(self)
-        ratingCtrl = eg.SpinIntCtrl(
-            panel,
-            rating,
-            max=100,
-        )
-        panel.AddLabel(self.text.label_conf)
-        panel.AddCtrl(ratingCtrl)
+        ratingCtrl = panel.SpinIntCtrl(rating, min=0, max=100)
+        panel.AddLabel(self.text.label_info)
+
+        panel.AddLine(self.text.label_prompt, ratingCtrl)
+
+        # This was the only way I could keep all 6 buttons from
+        # always generating a rating of 5.
+        # rateButton is a function returning a function that sets
+        # the rating.
+        rateButton = lambda rating: lambda event: ratingCtrl.SetValue(rating*20)
+
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        for i in range(0,6):
+            b = panel.Button(label=(sBlack * i)+(sWhite * (5-i)),
+                style=wx.BU_EXACTFIT)
+            b.Bind(wx.EVT_BUTTON, rateButton(i))
+            sizer.Add(b)
+        panel.sizer.Add(sizer, 0, wx.EXPAND)
+
         while panel.Affirmed():
             panel.SetResult(ratingCtrl.GetValue())
 
 
 class ChangeVolume(eg.ActionClass):
     class text:
-        label_tree="Change volume by: "
-        label_conf="Change by +- %:"
+        label_tree="Change volume by {:+}%"
+        label_conf="Change by: {}%"
 
     def __call__(self, volume):
         return self.plugin.CallThread("ModifyValue",self.value,volume)
 
     def GetLabel(self, volume):
-        return self.text.label_tree+str(int(volume))+"%"
+        return self.text.label_tree.format(volume)
 
     def Configure(self, step=0.0):
         panel = eg.ConfigPanel(self)
@@ -303,21 +321,21 @@ class ChangeVolume(eg.ActionClass):
             min=-100.0,
             fractionWidth=0
         )
-        panel.AddLabel(self.text.label_conf)
-        panel.AddCtrl(volumeCtrl)
+        labels = self.text.label_conf.split("{}")
+        panel.AddLine(labels[0], volumeCtrl, labels[1])
         while panel.Affirmed():
             panel.SetResult(volumeCtrl.GetValue())
 
 class LoadPlaylist(eg.ActionClass):
     class text:
-        label_tree="Load Playlist: "
+        label_tree="Load Playlist: {}"
         label_conf="Playlist Name (case sensitive)"
 
     def __call__(self, plname):
         return self.plugin.CallThread("doLoadPlaylist",plname,self.value)
 
     def GetLabel(self, plname):
-        return self.text.label_tree+ plname
+        return self.text.label_tree.format(plname)
 
     def Configure(self, plname=""):
             panel = eg.ConfigPanel()
@@ -331,7 +349,7 @@ class LoadPlaylist(eg.ActionClass):
 
 class SearchAndPlay(eg.ActionClass):
     class text:
-        label_tree="Search: "
+        label_tree="Search ({}): {}"
         label_searchString="Search String: "
         label_searchType="Search Type: "
         label_shuffle = "Shuffle List: "
@@ -341,7 +359,7 @@ class SearchAndPlay(eg.ActionClass):
         self.plugin.CallThread("doSearchAndPlay",searchType,strSearch,shuffle,playlist)
 
     def GetLabel(self, searchType,strSearch, shuffle, playlist="eventghostTemp"):
-        return "Search ("+searchType+"): "+strSearch
+        return self.text.label_tree.format(searchType, strSearch)
 
     def Configure(self, searchType="",searchString="", shuffle=False, playlist="eventghostTemp"):
         panel = eg.ConfigPanel(self)
