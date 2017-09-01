@@ -26,6 +26,8 @@ state of iTunes, and even lets you control iTunes.
 Simple control features supported: launch iTunes, exit iTunes, play, stop,
 pause, next/previous track, rewind, fast-forward, resume, toggle
 visualization/fullscreen/mute/shuffle/repeat, turn shuffle on/off,
+turn mute on/off, turn visualization on/off, set visualization fullscreen
+or windowed,
 turn repeat on/off/repeat all.
 
 Advanced control features supported: set/change volume, load playlist
@@ -44,25 +46,29 @@ playback stopped, volume changed, iTunes closing, iTunes starting.
 
 ## Downloads and Support
 
-This plugin first appeared in
-[this thread on the EventGhost forums](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=0),
-and that thread now serves as its support and distribution thread.
-All releases so far have appeared as attachments to comments on that
-thread. I'll do the same with my contributions.
+[This thread on the EventGhost forums](http://www.eventghost.net/forum/viewtopic.php?f=9&t=9802)
+serves as its support and distribution thread.
 
+This plugin first appeared in
+[this thread on the EventGhost forums](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=0).
 I've copied the
 [0.1.11 release](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&start=45#p19716)
 from that thread and used it to seed the GitHub repository at
 [Boolean263/EventGhost-iTunes](https://github.com/Boolean263/EventGhost-iTunes)
 (it's the initial commit there).
 I make no claim of this repo being anything close to official;
-that said, the thread has seen little to no activity in the last 2 years.
+that said, the thread had seen little to no activity in the last 2 years.
 
 ## Authors
 
 Stottle, Jitterjames, cfull1, yokel22, and Boolean263
 
 ## Changelog
+
+### Not yet released
+* Improve some configuration dialogs, particularly the rating dialog
+* Add explicit on and off actions for actions that were only toggle-able
+  before: Mute, Visualization, Full-screen visualization mode
 
 ### 0.1.15 - 2017-08-28
 * [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&p=47869#p47869)

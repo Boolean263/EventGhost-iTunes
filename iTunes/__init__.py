@@ -763,6 +763,12 @@ class iTunesThreadWorker(eg.ThreadWorker):
               iTunes.CurrentPlaylist.Shuffle = True
             elif name=="ShuffleOff":
               iTunes.CurrentPlaylist.Shuffle = False
+            elif name in ("MuteOn", "MuteOff"):
+              setattr(iTunes, 'Mute', name[-1]=="n")
+            elif name in ("VisualizationOn", "VisualizationOff"):
+              setattr(iTunes, 'VisualsEnabled', name[-1]=="n")
+            elif name in ("VisFullScreenOn", "VisFullScreenOff"):
+              setattr(iTunes, 'FullScreenVisuals', name[-1]=="n")
             elif name=="ToggleRepeat":
               if iTunes.CurrentPlaylist.SongRepeat == const.ITPlaylistRepeatModeOff:
                 iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeAll
@@ -872,8 +878,14 @@ ACTIONSgrp1 = (
 (StdCall, 'FastForward', 'FastForward', 'Skip forward in a playing track. ', 'FastForward'),
 (StdCall, 'Resume', 'Resume', 'Disable fast forward/rewind and resume playback, if playing', 'Resume'),
 (ToggleAction, 'VisualsEnabled', 'Toggle Visualization', 'Switch in or out of Visualization mode', 'VisualsEnabled'),
+(SimpleActions, 'VisualizationOn', 'Visualization On', 'Turn Visualization On', 'VisualizationOn'),
+(SimpleActions, 'VisualizationOff', 'Visualization Off', 'Turn Visualization Off', 'VisualizationOff'),
 (ToggleAction, 'Fullscreen', 'Toggle Fullscreen', 'Switch in or out of Fullscreen mode', 'FullScreenVisuals'),
-(ToggleAction, 'ToggleMute', 'Toggle mute', 'Toggle mute (on/off)', 'Mute'),
+(SimpleActions, 'VisFullScreenOn', 'Visualization Full-Screen', 'Set Visualization to Full-Screen', 'VisFullScreenOn'),
+(SimpleActions, 'VisFullScreenOff', 'Visualization Windowed', 'Set Visualization to Windowed', 'VisFullScreenOff'),
+(ToggleAction, 'ToggleMute', 'Toggle Mute', 'Toggle mute (on/off)', 'Mute'),
+(SimpleActions, 'MuteOn', 'Mute On', 'Turn Mute On', 'MuteOn'),
+(SimpleActions, 'MuteOff', 'Mute Off', 'Turn Mute Off', 'MuteOff'),
 (SimpleActions, 'ToggleShuffle', 'Toggle Shuffle', 'Toggle Shuffle (on/off)', 'ToggleShuffle'),
 (SimpleActions, 'ShuffleOn', 'Shuffle On', 'Turn Shuffle On', 'ShuffleOn'),
 (SimpleActions, 'ShuffleOff', 'Shuffle Off', 'Turn Shuffle Off', 'ShuffleOff'),
