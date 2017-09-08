@@ -70,6 +70,8 @@ Stottle, Jitterjames, cfull1, yokel22, and Boolean263
 * Add explicit on and off actions for actions that were only toggle-able
   before: Mute, Visualization, Full-screen visualization mode
 * Minor backend refactoring
+* Use process list instead of window list to detect if iTunes is running
+  (fixes not detecting iTunes when it's minimized to the system tray)
 
 ### 0.1.15 - 2017-08-28
 * [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&p=47869#p47869)

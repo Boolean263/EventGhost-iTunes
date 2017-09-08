@@ -151,6 +151,7 @@ eg.RegisterPlugin(
 
 from win32com.client import Dispatch
 from eg.WinApi.Utils import CloseHwnd
+from eg.cFunctions import GetProcessDict
 import time
 import datetime
 import wx.lib.masked as masked
@@ -800,7 +801,6 @@ class iTunes(eg.PluginClass):
 
     workerThread = None
     def __init__(self):
-        self.windowMatch = eg.WindowMatcher(u"iTunes.exe",None, None, None, None, 1, False, 0.0, 0)
         group1 = self.AddGroup(Text.Grp1Name,Text.Grp1Descr)
         group1.AddActionsFromList(ACTIONSgrp1)
         group2 = self.AddGroup(Text.Grp2Name,Text.Grp2Descr)
@@ -837,8 +837,7 @@ class iTunes(eg.PluginClass):
                 return self.workerThread.CallWait(func)
 
     def ComActive(self):
-        hwnds = self.windowMatch()
-        if len(hwnds) != 0:
+        if u'iTunes.exe' in GetProcessDict().values():
             if not self.workerThread:
                 self.TriggerEvent("Running")
                 self.StartThread()
