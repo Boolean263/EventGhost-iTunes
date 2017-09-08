@@ -28,7 +28,7 @@ eg.RegisterPlugin(
     kind = "program",
     createMacrosOnAdd = True,
     description = 'Adds support functions to control <a href="http://www.apple.com/itunes/">iTunes</a>.',
-    url = "http://www.eventghost.org/forum/viewtopic.php?f=10&t=1815&start=0",
+    url = "http://www.eventghost.net/forum/viewtopic.php?f=9&t=9802",
     guid = "{20EF2042-945A-4165-B8C5-3F98E70C0AE7}",
     icon = (
     "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEA"
@@ -158,6 +158,9 @@ from os.path import isfile
 import win32com.client
 from functools import partial
 import wx
+
+# Shorthand
+iConst = win32com.client.constants
 
 #====================================================================
 class Text:
@@ -561,7 +564,7 @@ class iTunesEvents():
         self.plugin.TriggerEvent("VolumeChanged",payload)
     def OnPlayerStopEvent(self, iTrack):
         "Triggered when the user stops play, or switches tracks."
-        if self.comInstance.PlayerState == self.comConst.ITPlayerStateStopped:
+        if self.comInstance.PlayerState == iConst.ITPlayerStateStopped:
             self.plugin.TriggerEvent("Stopped")
     def OnAboutToPromptUserToQuitEvent(self):
         #User is trying to close iTunes, close for them to prevent prompt
@@ -577,7 +580,6 @@ class iTunesEvents():
 
 class iTunesThreadWorker(eg.ThreadWorker):
     comInstance = None
-    comConst = None
     plugin = None
     eventHandler = None
 
@@ -586,18 +588,14 @@ class iTunesThreadWorker(eg.ThreadWorker):
         self.eventHandler = eventHandler
         try:
             self.comInstance = win32com.client.gencache.EnsureDispatch("iTunes.Application")
-            self.comConst = win32com.client.constants
             win32com.client.WithEvents(self.comInstance,self.eventHandler)
             self.eventHandler.comInstance = self.comInstance
-            self.eventHandler.comConst = self.comConst
         except:
             pass
 
     def Finish(self):
         if self.comInstance:
             del self.comInstance
-        if self.comConst:
-            del self.comConst
 
     def StdCall(self,value):
         iTunes = self.comInstance
@@ -754,7 +752,6 @@ class iTunesThreadWorker(eg.ThreadWorker):
 
     def SimpleActions(self,name):
         iTunes = self.comInstance
-        const = self.comConst
 
         try:
             if name=="ToggleShuffle":
@@ -770,18 +767,18 @@ class iTunesThreadWorker(eg.ThreadWorker):
             elif name in ("VisFullScreenOn", "VisFullScreenOff"):
               setattr(iTunes, 'FullScreenVisuals', name[-1]=="n")
             elif name=="ToggleRepeat":
-              if iTunes.CurrentPlaylist.SongRepeat == const.ITPlaylistRepeatModeOff:
-                iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeAll
-              elif iTunes.CurrentPlaylist.SongRepeat == const.ITPlaylistRepeatModeAll:
-                iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeOne
-              elif iTunes.CurrentPlaylist.SongRepeat == const.ITPlaylistRepeatModeOne:
-                  iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeOff
+              if iTunes.CurrentPlaylist.SongRepeat == iConst.ITPlaylistRepeatModeOff:
+                iTunes.CurrentPlaylist.SongRepeat = iConst.ITPlaylistRepeatModeAll
+              elif iTunes.CurrentPlaylist.SongRepeat == iConst.ITPlaylistRepeatModeAll:
+                iTunes.CurrentPlaylist.SongRepeat = iConst.ITPlaylistRepeatModeOne
+              elif iTunes.CurrentPlaylist.SongRepeat == iConst.ITPlaylistRepeatModeOne:
+                  iTunes.CurrentPlaylist.SongRepeat = iConst.ITPlaylistRepeatModeOff
             elif name=="RepeatOff":
-                iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeOff
+                iTunes.CurrentPlaylist.SongRepeat = iConst.ITPlaylistRepeatModeOff
             elif name=="RepeatOne":
-              iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeOne
+              iTunes.CurrentPlaylist.SongRepeat = iConst.ITPlaylistRepeatModeOne
             elif name=="RepeatAll":
-              iTunes.CurrentPlaylist.SongRepeat = const.ITPlaylistRepeatModeAll
+              iTunes.CurrentPlaylist.SongRepeat = iConst.ITPlaylistRepeatModeAll
             elif name=="SetRating":
               iTunes.CurrentTrack.Rating = 100
         except:

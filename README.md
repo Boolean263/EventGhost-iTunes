@@ -69,6 +69,7 @@ Stottle, Jitterjames, cfull1, yokel22, and Boolean263
 * Improve some configuration dialogs, particularly the rating dialog
 * Add explicit on and off actions for actions that were only toggle-able
   before: Mute, Visualization, Full-screen visualization mode
+* Minor backend refactoring
 
 ### 0.1.15 - 2017-08-28
 * [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&p=47869#p47869)
