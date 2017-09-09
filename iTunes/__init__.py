@@ -24,7 +24,7 @@
 eg.RegisterPlugin(
     name = "iTunes",
     author = "Stottle, Jitterjames, cfull1, yokel22, Boolean263",
-    version = "0.1.15",
+    version = "0.1.16",
     kind = "program",
     createMacrosOnAdd = True,
     description = 'Adds support functions to control <a href="http://www.apple.com/itunes/">iTunes</a>.',

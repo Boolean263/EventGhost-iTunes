@@ -65,7 +65,7 @@ Stottle, Jitterjames, cfull1, yokel22, and Boolean263
 
 ## Changelog
 
-### Not yet released
+### 0.1.16 - 2017-09-09
 * Improve some configuration dialogs, particularly the rating dialog
 * Add explicit on and off actions for actions that were only toggle-able
   before: Mute, Visualization, Full-screen visualization mode
