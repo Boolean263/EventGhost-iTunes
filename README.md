@@ -72,6 +72,8 @@ Stottle, Jitterjames, cfull1, yokel22, and Boolean263
 * Minor backend refactoring
 * Use process list instead of window list to detect if iTunes is running
   (fixes not detecting iTunes when it's minimized to the system tray)
+* Prevent iTunes from showing a warning dialog when you try to close it while
+  this plugin is active
 
 ### 0.1.15 - 2017-08-28
 * [Release link](http://www.eventghost.net/forum/viewtopic.php?f=10&t=1815&p=47869#p47869)

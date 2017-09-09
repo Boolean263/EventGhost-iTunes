@@ -568,12 +568,12 @@ class iTunesEvents():
         if self.comInstance.PlayerState == iConst.ITPlayerStateStopped:
             self.plugin.TriggerEvent("Stopped")
     def OnAboutToPromptUserToQuitEvent(self):
-        #User is trying to close iTunes, close for them to prevent prompt
+        # User is trying to close iTunes, close for them to prevent prompt
         eg.PrintNotice("Closing iTunes")
         self.plugin.TriggerEvent("Closing")
         self.plugin.workerThread.StdCall('Quit')
-
-
+        self.plugin.workerThread.Stop()
+        self.plugin.workerThread.Finish()
 
 #====================================================================
 #This class is the thread that hold the COM instance
@@ -817,6 +817,11 @@ class iTunes(eg.PluginClass):
         except:
             raise self.Exception("Error starting iTunes worker thread")
 
+    def StopThread(self):
+        if self.workerThread:
+            self.workerThread.Stop(1)
+            self.workerThread = None
+
     def CallThread(self, funcName, *args, **kwargs):
         if not self.ComActive():
             return None
@@ -843,9 +848,8 @@ class iTunes(eg.PluginClass):
                 self.StartThread()
             return True
         elif self.workerThread:
+            self.StopThread()
             self.TriggerEvent("NotRunning")
-            self.workerThread.Stop(1)
-            self.workerThread = None
         eg.PrintNotice("iTunes is not running")
         return False
 
@@ -853,9 +857,7 @@ class iTunes(eg.PluginClass):
         self.ComActive()
 
     def __stop__(self):
-        if self.workerThread:
-            self.workerThread.Stop(1)
-            self.workerThread = None
+        self.StopThread()
 
 #====================================================================
 #Finally, each line in ACTIONS becomes a new action of the plugin.
